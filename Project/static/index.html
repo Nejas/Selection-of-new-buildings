@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Рейтинг застройщиков</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="topbar" aria-label="Поиск застройщика">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <div>
+            <h1>Рейтинг застройщиков</h1>
+            <p>Оценка надёжности по открытым данным</p>
+          </div>
+        </div>
+        <form class="search" id="searchForm">
+          <input id="searchInput" name="query" type="search" autocomplete="off" placeholder="Название или ИНН" />
+          <button type="submit">Найти</button>
+        </form>
+      </section>
+
+      <section class="workspace">
+        <aside class="panel results-panel">
+          <div class="panel-head">
+            <h2>Застройщики</h2>
+            <span id="resultCount">0</span>
+          </div>
+          <div id="results" class="results"></div>
+        </aside>
+
+        <section class="main-panel">
+          <div id="emptyState" class="empty-state">
+            <div class="empty-visual" aria-hidden="true">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <h2>Введите название застройщика</h2>
+          </div>
+
+          <div id="scoreView" class="score-view hidden">
+            <section id="loadingPanel" class="loading-panel hidden">
+              <div class="spinner" aria-hidden="true"></div>
+              <div>
+                <h2>Расчёт рейтинга</h2>
+                <div class="loading-steps">
+                  <span>Сбор данных</span>
+                  <span>Правовые события</span>
+                  <span>Новости</span>
+                  <span>Итоговый балл</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="score-header">
+              <div>
+                <p id="selectedInn" class="muted"></p>
+                <h2 id="developerName"></h2>
+              </div>
+              <div class="score-badge">
+                <span id="scoreValue"></span>
+                <small id="scoreLabel"></small>
+              </div>
+            </section>
+
+            <section class="status-band" id="statusBand">
+              <span id="statusText"></span>
+            </section>
+
+            <section class="metrics-grid">
+              <div class="metric"><span>Объекты</span><strong id="projectsCount">0</strong></div>
+              <div class="metric"><span>Проблемные</span><strong id="problemCount">0</strong></div>
+              <div class="metric"><span>Срывы сроков</span><strong id="delayCount">0</strong></div>
+              <div class="metric"><span>Негативные юр. события</span><strong id="legalCount">0</strong></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h2>Критерии</h2>
+              </div>
+              <div id="criteriaList" class="criteria-list"></div>
+            </section>
+
+            <section class="split">
+              <div class="panel">
+                <div class="panel-head">
+                  <h2>Факторы</h2>
+                </div>
+                <dl id="factorList" class="factor-list"></dl>
+              </div>
+              <div class="panel">
+                <div class="panel-head">
+                  <h2>Предупреждения</h2>
+                </div>
+                <ul id="warnings" class="warnings"></ul>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h2>Объекты</h2>
+                <span id="projectsTableCount">0</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Объект</th>
+                      <th>План</th>
+                      <th>Задержка</th>
+                      <th>Площадь</th>
+                      <th>Статус</th>
+                    </tr>
+                  </thead>
+                  <tbody id="projectsTable"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="split">
+              <div class="panel">
+                <div class="panel-head">
+                  <h2>Негативные судебные дела</h2>
+                  <span id="legalEventsCount">0</span>
+                </div>
+                <div id="legalEvents" class="event-list"></div>
+              </div>
+              <div class="panel">
+                <div class="panel-head">
+                  <h2>Новости</h2>
+                  <span id="newsCount">0</span>
+                </div>
+                <div id="newsSentimentChart" class="sentiment-chart"></div>
+                <div id="newsList" class="event-list"></div>
+              </div>
+            </section>
+          </div>
+        </section>
+      </section>
+
+      <section class="methodology-grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Критерии оценки</h2>
+          </div>
+          <div class="method-list">
+            <div><strong>40%</strong><span>Дисциплина сроков: средняя задержка ввода, взвешенная по площади объектов.</span></div>
+            <div><strong>25%</strong><span>Проблемные объекты: наличие объектов с флагом проблемности.</span></div>
+            <div><strong>20%</strong><span>Правовые риски: негативные судебные дела, где застройщик выступает ответчиком, с учётом давности.</span></div>
+            <div><strong>15%</strong><span>Репутация: доля негативных новостей среди тонально окрашенных публикаций; нейтральные публикации показываются, но не влияют на балл.</span></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Шкала статусов</h2>
+          </div>
+          <div class="scale-list">
+            <div><span class="scale-dot high"></span><strong>80-100</strong><span>Высокая надёжность</span></div>
+            <div><span class="scale-dot medium"></span><strong>60-79</strong><span>Средняя надёжность</span></div>
+            <div><span class="scale-dot risk"></span><strong>40-59</strong><span>Рискованный</span></div>
+            <div><span class="scale-dot danger"></span><strong>0-39</strong><span>Высокий риск</span></div>
+            <div><span class="scale-dot unknown"></span><strong>н/д</strong><span>Неизвестный: нет объектов или компания младше года</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel rules-panel">
+        <div class="panel-head">
+          <h2>Правила формирования балла</h2>
+        </div>
+        <div class="rules-grid">
+          <div>
+            <strong>Нейтральная замена</strong>
+            <p>Если отдельный критерий недоступен, при расчёте используется нейтральное значение 0.5, а в карточке появляется предупреждение.</p>
+          </div>
+          <div>
+            <strong>Проблемный объект</strong>
+            <p>Если есть проблемный объект, итоговый статус не может быть выше “Рискованный”.</p>
+          </div>
+          <div>
+            <strong>Критическая задержка</strong>
+            <p>Если средняя задержка больше 180 дней, итоговый статус понижается на одну ступень.</p>
+          </div>
+          <div>
+            <strong>Недостаточно данных</strong>
+            <p>Статус “Неизвестный” ставится только если нет объектов или застройщик зарегистрирован менее года назад.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

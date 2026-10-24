@@ -1,0 +1,63 @@
+{
+    "id": "domrfdevelopers",
+    "name": "\u0415\u0434\u0438\u043d\u044b\u0439 \u0440\u0435\u0435\u0441\u0442\u0440 \u0437\u0430\u0441\u0442\u0440\u043e\u0439\u0449\u0438\u043a\u043e\u0432",
+    "homepage": "https://xn--80az8a.xn--d1aqf.xn--p1ai",
+    "version": "20211009-10-51-51",
+    "builddate": "2021-10-09T10:51:51.158750",
+    "resources": [
+        {
+            "name": "index.csv",
+            "path": "index.csv",
+            "mediatype": "text/csv",
+            "format": "csv",
+            "bytes": 73732,
+            "hash": "e56ec450b3076386a7a2e3941eeda46a69c34fd5955a7af3f0da53995e8e105c",
+            "encoding": "utf-8"
+        },
+        {
+            "name": "params.json",
+            "path": "params.json",
+            "mediatype": "application/json",
+            "format": "json",
+            "bytes": 48,
+            "hash": "32a232b249db0196dcef545b5f5068e6795498da7425a1e2bf65008b160850ef",
+            "encoding": "utf-8"
+        },
+        {
+            "name": "domrfdevelopers_final.json.gz",
+            "path": "domrfdevelopers_final.json.gz",
+            "mediatype": "application/x-gzip",
+            "format": "gz",
+            "bytes": 736040,
+            "hash": "409e5bbb731695ab8665c35fcc38969ef7a305f2c86fdba8779a3dd5bd56e709",
+            "encoding": "utf-8"
+        },
+        {
+            "name": "domrfdevelopers_processed.json.gz",
+            "path": "domrfdevelopers_processed.json.gz",
+            "mediatype": "application/x-gzip",
+            "format": "gz",
+            "bytes": 736044,
+            "hash": "8b02b18a500e09629fded309f518499e39780c25852a400f7facb30fad82f7de",
+            "encoding": "utf-8"
+        },
+        {
+            "name": "domrfdevelopers_final.bson.gz",
+            "path": "domrfdevelopers_final.bson.gz",
+            "mediatype": "application/x-gzip",
+            "format": "gz",
+            "bytes": 819020,
+            "hash": "c615bc096e61a29a050b08254abc5ccc7c530f7f5a13c21be33a805e4a65d519",
+            "encoding": "utf-8"
+        },
+        {
+            "name": "domrfdevelopers_current.jsonl",
+            "path": "domrfdevelopers_current.jsonl",
+            "mediatype": "binary",
+            "format": "jsonl",
+            "bytes": 5400729,
+            "hash": "320426e7b510bc835128dbbff0de5fda28aa616ecbcf47a554aaef6bab5d7fdc",
+            "encoding": "utf-8"
+        }
+    ]
+}
