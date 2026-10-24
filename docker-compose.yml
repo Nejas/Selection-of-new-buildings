@@ -1,0 +1,76 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: nohaze-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Huma2005
+      POSTGRES_DB: practicum
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init/01-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./noHaze/bd.sql:/docker-entrypoint-initdb.d/02-nohaze-bd.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d practicum"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  rating-service:
+    build:
+      context: ./Project
+      dockerfile: Dockerfile
+    container_name: developer-rating-service
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:Huma2005@db:5432/Developer_rating
+      DEVELOPERS_DATA_PATH: /app/Data/domrfdevelopers_final.json
+      PROJECTS_DATA_PATH: /app/Data/domrfkn_current.jsonl
+      PROBLEM_OBJECTS_REPORT_PATH: /app/Data/problem_objects_02_05_2026.xlsx
+      NEWS_LIMIT: 30
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./Project:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  nohaze-api:
+    build:
+      context: .
+      dockerfile: noHaze/app/Dockerfile
+    container_name: nohaze-api
+    environment:
+      NOHAZE_DB_URL: postgresql://postgres:Huma2005@db:5432/practicum
+      RATING_SERVICE_URL: http://rating-service:8001
+      RATING_SERVICE_TIMEOUT: 180
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./noHaze/app:/app/app
+      - ./noHaze/migrations:/app/migrations
+    depends_on:
+      db:
+        condition: service_healthy
+      rating-service:
+        condition: service_started
+
+  nohaze-frontend:
+    build:
+      context: ./noHaze/frontend/my-map-app
+      dockerfile: Dockerfile
+    container_name: nohaze-frontend
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      WDS_SOCKET_PORT: 3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./noHaze/frontend/my-map-app/src:/app/src
+    depends_on:
+      - nohaze-api
+
+volumes:
+  postgres_data:

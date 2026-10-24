@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+frontend/my-map-app/node_modules/
+frontend/my-map-app/build/

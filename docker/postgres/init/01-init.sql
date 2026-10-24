@@ -1,0 +1,4 @@
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+CREATE DATABASE "Developer_rating";
+

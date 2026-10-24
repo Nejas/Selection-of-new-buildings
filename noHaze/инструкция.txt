@@ -1,0 +1,43 @@
+СОЗДАНИЕ БД
+psql -U postgres
+create database practicum;
+\c practicum
+create extension postgis;
+psql -U postgres -d practicum -f bd.sql
+
+В текущей версии ИНН застройщиков берётся из поля developer_inn таблицы
+new_buildings. JSON-обогащение и поиск ИНН больше не используются.
+
+ДЛЯ БЭКЕНДА
+python -m venv .venv
+pip install -r requirements.txt
+cd app
+uvicorn main:app
+
+Если пароль PostgreSQL отличается, перед запуском задайте строку подключения:
+$env:NOHAZE_DB_URL="postgresql://postgres:ВАШ_ПАРОЛЬ@localhost:5432/practicum"
+
+Если БД не поднята или недоступна, сервер вернёт демонстрационные данные и фронтенд всё равно будет работать.
+
+МИКРОСЕРВИСЫ
+1. Сервис рейтинга застройщиков:
+cd ..\Project
+uvicorn app:app --port 8001
+
+2. Сервис рекомендаций noHaze:
+cd ..\noHaze\app
+$env:RATING_SERVICE_URL="http://localhost:8001"
+uvicorn main:app --port 8000
+
+Проверить покрытие рейтингов:
+GET http://localhost:8000/ratings/coverage
+
+Обновить рейтинг одного застройщика:
+POST http://localhost:8000/ratings/developers/{inn}/refresh
+
+Обновить первые N известных ИНН:
+POST http://localhost:8000/ratings/refresh-known?limit=20
+
+ДЛЯ ФРОНТА
+cd .\frontend\my-map-app\ && npm start
+
