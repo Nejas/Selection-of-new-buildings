@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, text
 
 from columns import column_mapping
 
-DB_URL = os.getenv("NOHAZE_DB_URL", "postgresql://postgres:Huma2005@localhost:5432/practicum")
+DB_URL = os.getenv("NOHAZE_DB_URL", "postgresql://postgres@localhost:5432/practicum")
 engine = create_engine(DB_URL)
 
 ALLOWED_SCORE_COLUMNS = set(column_mapping.values())

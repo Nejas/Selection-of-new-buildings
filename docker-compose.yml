@@ -4,10 +4,8 @@ services:
     container_name: nohaze-postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Huma2005
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: practicum
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init/01-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
@@ -24,11 +22,13 @@ services:
       dockerfile: Dockerfile
     container_name: developer-rating-service
     environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:Huma2005@db:5432/Developer_rating
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD}@db:5432/Developer_rating
       DEVELOPERS_DATA_PATH: /app/Data/domrfdevelopers_final.json
       PROJECTS_DATA_PATH: /app/Data/domrfkn_current.jsonl
       PROBLEM_OBJECTS_REPORT_PATH: /app/Data/problem_objects_02_05_2026.xlsx
       NEWS_LIMIT: 30
+      NEWS_ADMIN_KEY: ${NEWS_ADMIN_KEY:?Set NEWS_ADMIN_KEY in .env}
+      DOSSIER_TTL_HOURS: ${DOSSIER_TTL_HOURS:-24}
     ports:
       - "8001:8001"
     volumes:
@@ -43,7 +43,7 @@ services:
       dockerfile: noHaze/app/Dockerfile
     container_name: nohaze-api
     environment:
-      NOHAZE_DB_URL: postgresql://postgres:Huma2005@db:5432/practicum
+      NOHAZE_DB_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/practicum
       RATING_SERVICE_URL: http://rating-service:8001
       RATING_SERVICE_TIMEOUT: 180
     ports:

@@ -177,6 +177,8 @@ function Map({ results, categories }) {
           <strong>{formatScore(dossier.score)}</strong>
         </div>
 
+        {dossier.updated_at && <p>Дата расчёта: {new Date(dossier.updated_at).toLocaleString("ru-RU")}</p>}
+
         {(warnings.length > 0 || unknownReasons.length > 0) && (
           <div className="rating-notes">
             {[...unknownReasons, ...warnings].map((item, index) => (

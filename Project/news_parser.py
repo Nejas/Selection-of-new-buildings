@@ -9,6 +9,7 @@ import httpx
 
 from config import settings
 from news_sources import NewsSource
+from news_url import validate_news_url
 
 
 @dataclass(frozen=True)
@@ -47,7 +48,7 @@ class NewsRSSParser:
         self.url_template = url_template or settings.news_rss_url_template
         self.sources = sources
         self.limit = limit or settings.news_limit
-        self.client = client or httpx.AsyncClient(timeout=10)
+        self.client = client or httpx.AsyncClient(timeout=10, trust_env=False)
 
     async def parse(self, developer_name: str, inn: str | None = None) -> list[NewsItem]:
         queries = self._search_queries(developer_name, inn)
@@ -71,7 +72,8 @@ class NewsRSSParser:
             for query in source_queries:
                 url = self._source_url(source, query)
                 try:
-                    response = await self.client.get(url)
+                    validate_news_url(url)
+                    response = await self.client.get(url, follow_redirects=False)
                     response.raise_for_status()
                     all_items.extend(self._parse_rss(response.text))
                 except Exception as exc:

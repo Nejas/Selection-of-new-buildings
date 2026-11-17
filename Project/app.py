@@ -1,14 +1,17 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header, Depends
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
+import secrets
 from pathlib import Path
 from pydantic import BaseModel
 from db import AsyncSessionLocal, engine
 from models_db import Base, DeveloperDB, DeveloperDossierDB, NewsSourceDB, RatingDB
 from sqlalchemy import select
 from aggregator import Aggregator
+from config import settings
+from news_url import validate_news_url
 from news_sources import seed_default_news_sources
 from problem_objects_report import ProblemObjectsReportRepository
 from scoring import ScoringService
@@ -134,6 +137,7 @@ async def save_rating_and_dossier(dev, payload):
         dossier.updated_at = datetime.utcnow()
 
         await session.commit()
+        return dossier.updated_at
 
 
 def cached_dossier_payload(db_dev, dossier):
@@ -147,7 +151,7 @@ def cached_dossier_payload(db_dev, dossier):
         "legal_events": dossier.legal_events,
         "news": dossier.news,
         "cached": True,
-        "updated_at": dossier.updated_at.isoformat() if dossier.updated_at else None,
+        "updated_at": dossier.updated_at.isoformat() + "Z" if dossier.updated_at else None,
     }
 
 
@@ -192,15 +196,15 @@ async def developer_dossier(inn: str, refresh: bool = False):
             )
             res = await session.execute(stmt)
             row = res.first()
-            if row:
+            if row and row[1].updated_at and datetime.utcnow() - timedelta(hours=max(0, settings.dossier_ttl_hours)) <= row[1].updated_at <= datetime.utcnow():
                 return cached_dossier_payload(row[0], row[1])
 
     dev = await agg.load(inn=inn)
     result = scoring.evaluate(dev)
     payload = build_dossier_payload(dev, result)
-    await save_rating_and_dossier(dev, payload)
+    updated_at = await save_rating_and_dossier(dev, payload)
 
-    return {**payload, "cached": False}
+    return {**payload, "cached": False, "updated_at": updated_at.isoformat() + "Z"}
 
 
 @app.get("/api/developers/search")
@@ -305,8 +309,17 @@ async def list_news_sources():
     ]
 
 
-@app.post("/api/news-sources")
+def require_news_admin(x_news_admin_key: str | None = Header(default=None)):
+    if not settings.news_admin_key or not x_news_admin_key or not secrets.compare_digest(x_news_admin_key, settings.news_admin_key):
+        raise HTTPException(status_code=403, detail="News administration access denied")
+
+
+@app.post("/api/news-sources", dependencies=[Depends(require_news_admin)])
 async def create_news_source(source: NewsSourceCreate):
+    try:
+        validate_news_url(source.url_template.replace("{query}", "test"))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     async with AsyncSessionLocal() as session:
         existing = await session.execute(
             select(NewsSourceDB).where(NewsSourceDB.name == source.name)
@@ -329,7 +342,7 @@ async def create_news_source(source: NewsSourceCreate):
     }
 
 
-@app.patch("/api/news-sources/{source_id}/toggle")
+@app.patch("/api/news-sources/{source_id}/toggle", dependencies=[Depends(require_news_admin)])
 async def toggle_news_source(source_id: int):
     async with AsyncSessionLocal() as session:
         source = await session.get(NewsSourceDB, source_id)

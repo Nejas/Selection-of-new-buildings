@@ -35,7 +35,6 @@ const criteriaLabels = {
   reputation_risk: "Репутация",
 };
 const CACHE_VERSION = "rating-cache-v3";
-const DOSSIER_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 const STALE_DOSSIER_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 els.form.addEventListener("submit", async (event) => {
@@ -94,12 +93,6 @@ async function loadScore(inn) {
   showScoreShell();
 
   const cacheKey = makeCacheKey("dossier", inn);
-  const cached = readCache(cacheKey, DOSSIER_CACHE_TTL_MS);
-  if (cached) {
-    renderScore(cached);
-    return;
-  }
-
   setScoreLoading(inn);
   try {
     const response = await fetch(`/api/developers/${inn}/dossier`);
@@ -111,6 +104,7 @@ async function loadScore(inn) {
     const stale = readCache(cacheKey, STALE_DOSSIER_CACHE_TTL_MS);
     if (stale) {
       renderScore(stale);
+      els.statusText.textContent += " · Сервис недоступен, показаны сохранённые данные";
     } else {
       els.developerName.textContent = "Оценка недоступна";
       els.scoreValue.textContent = "–";
@@ -153,7 +147,8 @@ function renderScore(data) {
   els.selectedInn.textContent = factors.inn || "";
   els.scoreValue.textContent = data.score ?? "–";
   els.scoreLabel.textContent = data.score === null ? "нет оценки" : "баллов";
-  els.statusText.textContent = data.status || "";
+  const updatedAt = data.updated_at ? ` · Расчёт: ${new Date(data.updated_at).toLocaleString("ru-RU")}` : "";
+  els.statusText.textContent = (data.status || "") + updatedAt;
   setStatusClass(data.status);
 
   els.projectsCount.textContent = factors.projects_count ?? 0;

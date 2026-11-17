@@ -6,7 +6,7 @@ from dataclasses import dataclass
 class Settings:
     database_url: str = os.getenv(
         "DATABASE_URL",
-        "postgresql+asyncpg://postgres:Huma2005@localhost:5432/Developer_rating",
+        "postgresql+asyncpg://postgres@localhost:5432/Developer_rating",
     )
     eisjs_api_url: str = os.getenv("EISJS_API_URL", "https://apidata.mos.ru/v1/datasets")
     eisjs_api_key: str | None = os.getenv("EISJS_API_KEY")
@@ -27,6 +27,8 @@ class Settings:
         "NEWS_RSS_URL_TEMPLATE",
         "https://news.google.com/rss/search?q={query}&hl=ru&gl=RU&ceid=RU:ru",
     )
+    news_admin_key: str | None = os.getenv("NEWS_ADMIN_KEY")
+    dossier_ttl_hours: float = float(os.getenv("DOSSIER_TTL_HOURS", "24"))
     news_limit: int = int(os.getenv("NEWS_LIMIT", "30"))
     checko_api_url: str = os.getenv("CHECKO_API_URL", "https://api.checko.ru/v2/legal-cases")
     checko_api_key: str | None = os.getenv("CHECKO_API_KEY")
