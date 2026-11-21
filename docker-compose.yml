@@ -72,5 +72,23 @@ services:
     depends_on:
       - nohaze-api
 
+
+  api-tests:
+    image: postman/newman:alpine
+    profiles: ["testing"]
+    volumes:
+      - ./postman:/etc/newman:ro
+    command:
+      - run
+      - /etc/newman/api.postman_collection.json
+      - --environment
+      - /etc/newman/local.postman_environment.json
+      - --env-var
+      - nohaze_url=http://nohaze-api:8000
+      - --env-var
+      - rating_url=http://rating-service:8001
+      - --timeout-request
+      - "15000"
+
 volumes:
   postgres_data:

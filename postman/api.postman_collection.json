@@ -1,0 +1,308 @@
+{
+  "info": {
+    "name": "Подбор новостроек — API",
+    "description": "Проверки API без намеренного изменения данных. Для успешных запросов нужны работающие сервисы и база данных.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Сервис рейтинга",
+      "item": [
+        {
+          "name": "Состояние сервиса",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{rating_url}}/health",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Статус ok\", function () { pm.expect(pm.response.json().status).to.eql(\"ok\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Поиск застройщика",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{rating_url}}/api/developers/search?query=%D1%81%D1%82%D1%80%D0%BE&limit=5",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Массив результатов\", function () { const data = pm.response.json(); pm.expect(data).to.be.an(\"array\"); pm.expect(data.length).to.be.at.most(5); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Слишком короткий поисковый запрос",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{rating_url}}/api/developers/search?query=%D0%B0",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Неверный ИНН для досье",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{rating_url}}/api/developers/123/dossier",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Доступные новостные источники",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{rating_url}}/api/news-sources",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Массив источников\", function () { pm.expect(pm.response.json()).to.be.an(\"array\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Запрет изменения источника без ключа",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{rating_url}}/api/news-sources/1/toggle",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Подбор новостроек",
+      "item": [
+        {
+          "name": "Покрытие оценок",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{nohaze_url}}/ratings/coverage",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Счётчики присутствуют\", function () { const data = pm.response.json(); [\"total\", \"with_inn\", \"with_rating\", \"missing_inn\", \"missing_rating\"].forEach(key => pm.expect(data[key]).to.be.a(\"number\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Поиск объектов",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{nohaze_url}}/find",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"входы_выходы_станций_метро\": 5,\n  \"reliability_mode\": \"any\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Ответ — объект\", function () { pm.expect(pm.response.json()).to.be.an(\"object\").and.not.an(\"array\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Значение критерия вне диапазона",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{nohaze_url}}/find",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"входы_выходы_станций_метро\": 11\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", function () { pm.response.to.have.status(422); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Неизвестный фильтр надёжности",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{nohaze_url}}/find",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reliability_mode\": \"invalid\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", function () { pm.response.to.have.status(422); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Неверный ИНН через API подбора",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{nohaze_url}}/ratings/developers/123/dossier",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
